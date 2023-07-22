@@ -4,10 +4,10 @@ from .models import Group, Post, Comment
 from djoser.serializers import UserSerializer, User
 
 
-class CustomUserSerializer(UserSerializer):
+class NewUserSerializer(UserSerializer):
     class Meta:
         model = User
-        fields = ('email', 'id', 'username', 'first_name', 'last_name')
+        fields = ('email', 'id', 'username')
 
 
 class GroupSerializer(serializers.ModelSerializer):
