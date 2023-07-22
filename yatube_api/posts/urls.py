@@ -10,7 +10,7 @@ router.register(r'posts/(?P<post_id>\d+)/comments',
                 basename='comments')
 
 urlpatterns = [
-    path('v1/', include(router.urls)),
-    path('v1/api-token-auth/', include('djoser.urls')),
-    path('v1/api-token-auth/jwt/', include('djoser.urls.jwt')),
+    path('api/v1/', include(router.urls)),
+    path('api/v1/api-token-auth/', include('djoser.urls')),
+    path('api/v1/api-token-auth/jwt/', include('djoser.urls.jwt')),
 ]
