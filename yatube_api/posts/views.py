@@ -1,29 +1,50 @@
-from rest_framework.authentication import TokenAuthentication
-from rest_framework.decorators import \
-    authentication_classes, \
-    permission_classes
-from rest_framework.permissions import IsAuthenticated
+from django.shortcuts import get_object_or_404
+from rest_framework import permissions
 from rest_framework import viewsets
-from .serializers import GroupSerializer, \
-    PostSerializer, CommentSerializer
+
 from .models import Group, Post
+from .serializers import (
+    GroupSerializer, PostSerializer, CommentSerializer)
 
 
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+class IsAuthorOrReadOnly(permissions.BasePermission):
+    message = 'Auth error'
+
+    def has_object_permission(self, request, view, obj):
+        return (request.method in permissions.SAFE_METHODS
+                or obj.author == request.user)
+
+
 class GroupViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
 
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
 
+    permission_classes = [
+        IsAuthorOrReadOnly,
+        permissions.IsAuthenticated]
 
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+    def perform_create(self, serializer):
+        serializer.save(author=self.request.user)
+
+
 class CommentViewSet(viewsets.ModelViewSet):
     serializer_class = CommentSerializer
+    permission_classes = [
+        IsAuthorOrReadOnly,
+        permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        post_id = self.kwargs.get('post_id')
+        post = get_object_or_404(Post, pk=post_id)
+        return post.comments
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get('post_id')
+        author = self.request.user
+        post = get_object_or_404(Post, pk=post_id)
+        serializer.save(author=author, post=post)

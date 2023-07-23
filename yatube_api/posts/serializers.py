@@ -1,13 +1,21 @@
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 from .models import Group, Post, Comment
-from djoser.serializers import UserSerializer, User
+from djoser.serializers import User
 
 
-class NewUserSerializer(UserSerializer):
+class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('email', 'id', 'username')
+        fields = ['id', 'username', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
+
+    def create(self, validated_data):
+        user = User.objects.create_user(
+            username=validated_data['username'],
+            password=validated_data['password']
+        )
+        return user
 
 
 class GroupSerializer(serializers.ModelSerializer):
@@ -23,7 +31,7 @@ class PostSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post
         fields = '__all__'
-        read_only_fields = ('group', 'pub_date',)
+        read_only_fields = ('author', 'group', 'pub_date',)
 
 
 class CommentSerializer(serializers.ModelSerializer):
